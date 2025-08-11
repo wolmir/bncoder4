@@ -36,8 +36,8 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "package": "vsce package",
-    "build": "npm version minor && npm run package"
+    "build": "vsce package",
+    "package": "npm version minor && npm run build"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
