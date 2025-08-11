@@ -130,10 +130,13 @@ export function activate(context: vscode.ExtensionContext) {
       logger.info(`BNCoder4: InlineCompletionsRequested`);
       const cancelRequest = () => {
         logger.info("BNCoder4: Cancelled");
+        logger.info(`Requests in progress: ${requestsInProgress.size}`);
+        logger.info(`Request counter: ${requestsCounter}`);
         return { items: [] };
       };
 
       const fileName = document.uri.toString();
+
       const completionHandler = async () => {
         if (token.isCancellationRequested) {
           return cancelRequest();
@@ -167,7 +170,6 @@ export function activate(context: vscode.ExtensionContext) {
           if (requestsCounter > 3 || requestsInProgress.size > 3) {
             logger.warn("BNCoder4: Too many requests");
           }
-          logger.info(`BNCoder4: Sending request [`, requestsCounter, "]");
 
           let client = new Ollama();
           let requestId = Math.floor(Math.random() * 10 ** 9);
@@ -175,6 +177,11 @@ export function activate(context: vscode.ExtensionContext) {
             requestId = Math.floor(Math.random() * 10 ** 9);
           }
           requestsInProgress.set(requestId, client);
+
+          logger.info(`Requests in progress: ${requestsInProgress.size}`);
+          logger.info(`Request counter: ${requestsCounter}`);
+          logger.info(`BNCoder4: Sending request [`, requestId, "]");
+
           let contents = "";
 
           try {
@@ -204,12 +211,6 @@ export function activate(context: vscode.ExtensionContext) {
                   break;
                 }
                 contents += chunk.response;
-                logger.info(
-                  `client [${requestId}] :: response chunk :: ${chunk.response.slice(
-                    0,
-                    30
-                  )}...`
-                );
                 // This is to avoid too many ollama requests.
                 // I don't know if it will work.
                 // I still see concurrent responses,
@@ -217,14 +218,17 @@ export function activate(context: vscode.ExtensionContext) {
               }
             } catch (error: any) {
               logger.error(error);
+              logger.warn(`Error in request [${requestId}]`);
               throw error;
             }
           } catch (error: any) {
             if (error.name === `AbortError`) {
-              logger.warn(`Ollama request aborted`);
+              logger.warn(`Ollama request aborted : [${requestId}]`);
             } else {
               logger.error(`BNCoder4 Ollama error: ${error}`);
             }
+            logger.info(`Requests in progress: ${requestsInProgress.size}`);
+            logger.info(`Request counter: ${requestsCounter}`);
           } finally {
             requestsCounter -= 1;
             requestsInProgress.delete(requestId);

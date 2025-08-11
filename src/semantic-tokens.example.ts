@@ -51,6 +51,9 @@ const legend = (function () {
   );
 })();
 
+/**
+ * Activates the extension and registers the DocumentSemanticTokensProvider.
+ */
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerDocumentSemanticTokensProvider(
