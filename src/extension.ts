@@ -1,10 +1,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
-import ollama from "ollama";
+import ollama, { Ollama } from "ollama";
 import { InlineCompletionDebouncer } from "./InlineCompletionDebouncer";
 import { CodeCompletionCache } from "./CodeCompletionCache";
-import * as SemanticTokens from "./semantic-tokens.example";
+// import * as SemanticTokens from "./semantic-tokens.example";
 
 /**
  * Todo:
@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
   let logger = vscode.window.createOutputChannel(`BNCoder4`, { log: true });
   context.subscriptions.push(logger);
 
-  SemanticTokens.activate(context);
+  // SemanticTokens.activate(context);
 
   let temporalContext: string[] = [];
 
@@ -165,12 +165,16 @@ export function activate(context: vscode.ExtensionContext) {
           requestsCounter += 1;
           logger.info(`BNCoder4: Sending request [`, requestsCounter, "]");
 
+          let client = new Ollama();
+          let contents = "";
+
           try {
-            let generationResponse = await ollama.generate({
+            let generationStream = await client.generate({
               model: `qwen2.5-coder:1.5b-instruct`,
               prompt: prefix,
               keep_alive: "30m",
               suffix,
+              stream: true,
               // system: `You are Qwen, an expert coding assistant.
               // You are running inside an IDE providing inline suggestions to the
               // user as he works.
@@ -179,7 +183,20 @@ export function activate(context: vscode.ExtensionContext) {
 
               // `,
             });
-            let contents = generationResponse.response;
+            for await (const chunk of generationStream) {
+              contents += chunk.response;
+              if (token.isCancellationRequested) {
+                client.abort();
+              }
+            }
+          } catch (error: any) {
+            if (error.name === `AbortError`) {
+              logger.warn(`Ollama request aborted`);
+            } else {
+              logger.error(`BNCoder4 Ollama error: ${error}`);
+            }
+          } finally {
+            requestsCounter -= 1;
             logger.info(
               "BNCoder4 Response:",
               contents.slice(0, Math.min(30, contents.length)),
@@ -197,11 +214,6 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
             completionsCache.put(cacheKey, items[items.length - 1]);
-          } catch (error) {
-            logger.error(`BNCoder4 Ollama error: ${error}`);
-            items = [];
-          } finally {
-            requestsCounter -= 1;
             logger.info(`BNCoder4: Pending requests: ${requestsCounter}`);
           }
 
