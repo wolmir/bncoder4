@@ -113,6 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
   let debouncer = InlineCompletionDebouncer.getInstance(logger);
   let requestsCounter = 0;
   let completionsCache = new CodeCompletionCache();
+  const requestsInProgress = new Map<number, Ollama>();
 
   /**
    * Provides inline completion items for the active editor.
@@ -163,9 +164,17 @@ export function activate(context: vscode.ExtensionContext) {
           let suffix = text.slice(cursorOffset);
 
           requestsCounter += 1;
+          if (requestsCounter > 3 || requestsInProgress.size > 3) {
+            logger.warn("BNCoder4: Too many requests");
+          }
           logger.info(`BNCoder4: Sending request [`, requestsCounter, "]");
 
           let client = new Ollama();
+          let requestId = Math.floor(Math.random() * 10 ** 9);
+          while (requestsInProgress.has(requestId)) {
+            requestId = Math.floor(Math.random() * 10 ** 9);
+          }
+          requestsInProgress.set(requestId, client);
           let contents = "";
 
           try {
@@ -183,11 +192,32 @@ export function activate(context: vscode.ExtensionContext) {
 
               // `,
             });
-            for await (const chunk of generationStream) {
-              contents += chunk.response;
-              if (token.isCancellationRequested) {
-                client.abort();
+            try {
+              for await (const chunk of generationStream) {
+                if (
+                  token.isCancellationRequested ||
+                  !requestsInProgress.has(requestId) ||
+                  chunk.done
+                ) {
+                  requestsInProgress.delete(requestId);
+                  client.abort();
+                  break;
+                }
+                contents += chunk.response;
+                logger.info(
+                  `client [${requestId}] :: response chunk :: ${chunk.response.slice(
+                    0,
+                    30
+                  )}...`
+                );
+                // This is to avoid too many ollama requests.
+                // I don't know if it will work.
+                // I still see concurrent responses,
+                // I wonder how to limit them
               }
+            } catch (error: any) {
+              logger.error(error);
+              throw error;
             }
           } catch (error: any) {
             if (error.name === `AbortError`) {
@@ -197,24 +227,28 @@ export function activate(context: vscode.ExtensionContext) {
             }
           } finally {
             requestsCounter -= 1;
+            requestsInProgress.delete(requestId);
             logger.info(
               "BNCoder4 Response:",
               contents.slice(0, Math.min(30, contents.length)),
               "..."
             );
 
-            items.push({
-              insertText: contents,
-              range: new vscode.Range(
-                position.line,
-                position.character,
-                position.line,
-                position.character
-              ),
-            });
+            if (contents.trim().length > 1) {
+              items.push({
+                insertText: contents,
+                range: new vscode.Range(
+                  position.line,
+                  position.character,
+                  position.line,
+                  position.character
+                ),
+              });
+              completionsCache.put(cacheKey, items[items.length - 1]);
+            }
 
-            completionsCache.put(cacheKey, items[items.length - 1]);
             logger.info(`BNCoder4: Pending requests: ${requestsCounter}`);
+            logger.info(`In progress: ${requestsInProgress.size}`);
           }
 
           if (token.isCancellationRequested) {
@@ -231,6 +265,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
       };
 
+      if (token.isCancellationRequested) {
+        return cancelRequest();
+      }
       logger.info(`BNCoder4: Scheduling Request `);
       return debouncer.debounce(async () => completionHandler(), 3000);
     },
