@@ -53,6 +53,9 @@ const legend = (function () {
 
 /**
  * Activates the extension and registers the DocumentSemanticTokensProvider.
+ *
+ * @param context - The extension context.
+ * @returns A Promise that resolves when the extension is activated.
  */
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -72,6 +75,12 @@ interface IParsedToken {
   tokenModifiers: string[];
 }
 
+/**
+ * Implements the DocumentSemanticTokensProvider interface.
+ *
+ * @param context - The extension context.
+ * @returns A Promise that resolves when the extension is activated.
+ */
 class DocumentSemanticTokensProvider
   implements vscode.DocumentSemanticTokensProvider
 {

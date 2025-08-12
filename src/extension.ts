@@ -201,6 +201,9 @@ export function activate(context: vscode.ExtensionContext) {
             });
             try {
               for await (const chunk of generationStream) {
+                if (chunk.response?.length) {
+                  contents += chunk.response;
+                }
                 if (
                   token.isCancellationRequested ||
                   !requestsInProgress.has(requestId) ||
@@ -210,11 +213,6 @@ export function activate(context: vscode.ExtensionContext) {
                   client.abort();
                   break;
                 }
-                contents += chunk.response;
-                // This is to avoid too many ollama requests.
-                // I don't know if it will work.
-                // I still see concurrent responses,
-                // I wonder how to limit them
               }
             } catch (error: any) {
               logger.error(error);
