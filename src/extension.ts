@@ -191,6 +191,9 @@ export function activate(context: vscode.ExtensionContext) {
               keep_alive: "30m",
               suffix,
               stream: true,
+              options: {
+                num_predict: 50,
+              },
               // system: `You are Qwen, an expert coding assistant.
               // You are running inside an IDE providing inline suggestions to the
               // user as he works.
