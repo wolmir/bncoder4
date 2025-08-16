@@ -105,11 +105,11 @@ function applyDecoration(
   const message = `Hint: Rename "${oldName}" to "${newName}"`;
 
   const decorationType = vscode.window.createTextEditorDecorationType({
-    backgroundColor: `red`,
-    after: {
-      contentText: ` ${message.substring(0, 25) + "..."}`,
-      color: "grey",
-    },
+    backgroundColor: `rgba(255, 183, 3, 0.4)`,
+    // after: {
+    //   contentText: ` ${message.substring(0, 25) + "..."}`,
+    //   color: "grey",
+    // },
   });
 
   const indexOfOldNameOccurrence = editor.document.getText().indexOf(oldName);
