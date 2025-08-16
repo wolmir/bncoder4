@@ -33,12 +33,18 @@ const RenameSuggestionsSchema = z.object({
     .describe(`A list of rename suggestions for the given code`),
 });
 
-export async function generateRenamingSuggestions(doc: vscode.TextDocument) {
+export async function generateRenamingSuggestions(
+  doc: vscode.TextDocument,
+  logger: vscode.LogOutputChannel
+) {
+  logger.info(`Renames: Start`);
   let prompt = ANNOTATION_PROMPT.replace(`{{source_code}}`, doc.getText());
   let response = await generateJson<IRenameSuggestions>(
     prompt,
-    RenameSuggestionsSchema
+    RenameSuggestionsSchema,
+    logger
   );
+  logger.info(`Renames: End`);
 
   return (
     response ?? {
@@ -48,16 +54,20 @@ export async function generateRenamingSuggestions(doc: vscode.TextDocument) {
 }
 
 // This method is called when your extension is activated
-export function activate(context: vscode.ExtensionContext) {
+export function activate(
+  context: vscode.ExtensionContext,
+  logger: vscode.LogOutputChannel
+) {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       "bncoder4.suggestBetterNames",
       async (textEditor: vscode.TextEditor) => {
         const suggestions = await generateRenamingSuggestions(
-          textEditor.document
+          textEditor.document,
+          logger
         );
 
-        await processSuggestions(suggestions, textEditor);
+        await processSuggestions(suggestions, textEditor, logger);
       }
     )
   );
@@ -65,11 +75,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function processSuggestions(
   suggestions: IRenameSuggestions,
-  textEditor: vscode.TextEditor
+  textEditor: vscode.TextEditor,
+  logger: vscode.LogOutputChannel
 ) {
   let accumulatedResponse = "";
 
+  logger.info(`Applying decorations`);
   for (const suggestion of suggestions.renames) {
+    logger.info(JSON.stringify(suggestion, null, 2));
     if (!!suggestion.newName?.length && !!suggestion.oldName?.length) {
       try {
         applyDecoration(textEditor, suggestion);
@@ -93,10 +106,10 @@ function applyDecoration(
 
   const decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: `red`,
-    // after: {
-    //   contentText: ` ${message.substring(0, 25) + "..."}`,
-    //   color: "grey",
-    // },
+    after: {
+      contentText: ` ${message.substring(0, 25) + "..."}`,
+      color: "grey",
+    },
   });
 
   const indexOfOldNameOccurrence = editor.document.getText().indexOf(oldName);

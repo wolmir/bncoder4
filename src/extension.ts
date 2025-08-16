@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
   let logger = vscode.window.createOutputChannel(`BNCoder4`, { log: true });
   context.subscriptions.push(logger);
 
-  RenamingSuggestions.activate(context);
+  RenamingSuggestions.activate(context, logger);
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
