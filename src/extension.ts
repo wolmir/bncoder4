@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import ollama, { Ollama } from "ollama";
 import { InlineCompletionDebouncer } from "./InlineCompletionDebouncer";
 import { CodeCompletionCache } from "./CodeCompletionCache";
+import * as RenamingSuggestions from "./annotation-sample";
 // import * as SemanticTokens from "./semantic-tokens.example";
 
 /**
@@ -52,12 +53,20 @@ import { CodeCompletionCache } from "./CodeCompletionCache";
  *        - code reviews.
  */
 
+/**
+ * New Idea:
+ *  - Naming variables and functions, classes, etc:
+ *      We ask the llm to identify better name opprtunities
+ *      ans then we surround it using the diagnostics system.
+ */
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "bncoder4" is now active!');
+  let logger = vscode.window.createOutputChannel(`BNCoder4`, { log: true });
+  context.subscriptions.push(logger);
+
+  RenamingSuggestions.activate(context);
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
@@ -72,9 +81,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(disposable);
-
-  let logger = vscode.window.createOutputChannel(`BNCoder4`, { log: true });
-  context.subscriptions.push(logger);
 
   // SemanticTokens.activate(context);
 

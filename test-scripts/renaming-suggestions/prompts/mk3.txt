@@ -1,0 +1,17 @@
+USER:
+Find renaming opportunities in this source code:
+```
+{{source_code}}
+```
+
+Answer in JSON format with this schema:
+```
+{{jsonSchema}}
+```
+
+ASSISTANT:
+```json
+{
+    [[MARKER]]
+}
+```
