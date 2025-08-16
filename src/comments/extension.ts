@@ -1,3 +1,48 @@
+/**
+ * The code below was created from this specification:
+ *
+ * # Project Name
+ *
+ * VSCode Comments Extension
+ *
+ * ## Overview
+ *
+ * This extension provides a simple comment API to allow users to add comments to documents in VSCode. The extension includes commands for creating notes, replying to notes, starting and finishing drafts, deleting note comments, deleting notes, editing notes, and disposing of the controller.
+ *
+ *
+ * # Requirements
+ *
+ * 1. Implement the following command handlers:
+ *   - `mywiki.createNote` to create a note comment.
+ *   - `mywiki.replyNote` to reply to a note comment.
+ *   - `mywiki.startDraft` to start a draft note.
+ *   - `mywiki.finishDraft` to finish a draft note.
+ *   - `mywiki.deleteNoteComment` to delete a note comment.
+ *   - `mywiki.deleteNote` to delete a note.
+ *   - `mywiki.cancelsaveNote` to cancel a note save.
+ *   - `mywiki.saveNote` to save a note.
+ *   - `mywiki.editNote` to edit a note.
+ *   - `mywiki.dispose` to dispose of the comment controller.
+ *
+ * 2. Implement the `replyNote` function to create a new note comment in reply to the previous note comment that was replied to.
+ *
+ * 3. Implement the `replyNote` function to create a new note comment in reply to the previous note comment that was replied to.
+ *
+ * 4. Implement the `saveNote` function to save a note comment.
+ *
+ * 5. Implement the `finishDraft` function to save a note comment.
+ *
+ * 6. Implement the `deleteNoteComment` function to delete a note comment.
+ *
+ * 7. Implement the `deleteNote` function to delete a note.
+ *
+ * 8. Implement the `editNote` function to edit a note comment.
+ *
+ * 9. Implement the `dispose` function to dispose of the comment controller.
+ *
+ * 10. Create a command handler for the `createNote` command that replies to the previous note comment that was replied to.
+ *
+ */
 import * as vscode from "vscode";
 
 let commentId = 1;
