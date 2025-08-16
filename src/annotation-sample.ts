@@ -5,9 +5,9 @@ import { generateJson } from "./utils/generateJson";
 import { z } from "zod";
 
 const ANNOTATION_PROMPT = `Find renaming oportunities in the following source code:
------
+${"```"}
 {{source_code}}
------
+${"```"}
 `;
 
 export interface IRenameSuggestion {

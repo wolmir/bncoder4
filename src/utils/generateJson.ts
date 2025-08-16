@@ -17,7 +17,7 @@ ${prompt}
 
 Respond using JSON with the following schema:
 ${"```"}
-${JSON.stringify(zodToJsonSchema(schema))}
+${JSON.stringify(zodToJsonSchema(schema), null, 2)}
 ${"```"}
 
 ASSISTANT:
@@ -44,6 +44,7 @@ ${"```"}
         options: {
           temperature: 0,
           stop: ["```"],
+          num_predict: 100,
         },
       });
       logger.info(`[JSON Generator] Stream start`);
