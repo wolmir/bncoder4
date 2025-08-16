@@ -42,7 +42,7 @@ ${"```"}
         keep_alive: "30m",
         stream: true,
         options: {
-          temperature: 0,
+          temperature: 0.2,
           stop: ["```"],
           num_predict: 100,
         },
@@ -72,7 +72,7 @@ ${"```"}
       retryCount += 1;
       accumulatedResponse = ``;
     }
-  } while (parsingError && retryCount < 3);
+  } while (parsingError && retryCount < 5);
 
   logger.error(`[JSON Generator] Max retries exceeded`);
   return null;

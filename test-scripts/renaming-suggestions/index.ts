@@ -46,7 +46,7 @@ async function runTest(maxCtxLines: number) {
     stream: true,
     // format: jsonSchema,
     options: {
-      temperature: 0,
+      temperature: 0.2,
       stop: ["```"],
     },
     // system: `You are Qwen, an expert coding assistant.
