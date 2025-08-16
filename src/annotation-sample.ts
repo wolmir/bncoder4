@@ -38,7 +38,13 @@ export async function generateRenamingSuggestions(
   logger: vscode.LogOutputChannel
 ) {
   logger.info(`Renames: Start`);
-  let prompt = ANNOTATION_PROMPT.replace(`{{source_code}}`, doc.getText());
+  let lines = doc.getText().split(`\n`);
+  let lineCount = lines.length;
+  let maxLines = 50;
+  let randomStart = Math.floor(Math.random() * lineCount);
+  let endIndex = randomStart + maxLines;
+  let chunk = lines.slice(randomStart, endIndex).join(`\n`);
+  let prompt = ANNOTATION_PROMPT.replace(`{{source_code}}`, chunk);
   let response = await generateJson<IRenameSuggestions>(
     prompt,
     RenameSuggestionsSchema,
